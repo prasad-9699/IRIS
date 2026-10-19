@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IRIS | Production Product Catalog</title>
+  <meta name="description" content="Production-grade Product Catalog with Keyset Pagination, Real-time Substring Search, Dynamic Filtering, and Deep URL Synchronization.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header Area -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand-logo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="brand-icon">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+          <div class="brand-text">
+            <h1 class="brand-title">Product Catalog</h1>
+            <span class="brand-badge">Production API</span>
+          </div>
+        </div>
+        <p class="brand-subtitle">High-performance keyset cursor pagination with multi-field filtering & full-text search</p>
+      </div>
+
+      <div class="header-right">
+        <div class="system-status-chip" id="system-status">
+          <span class="status-dot"></span>
+          <span class="status-label" id="system-status-text">Connecting...</span>
+        </div>
+        <a href="/docs" target="_blank" rel="noopener noreferrer" class="btn-api-docs">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Swagger Docs
+        </a>
+      </div>
+    </header>
+
+    <!-- Top Stats Row -->
+    <section class="stats-grid" aria-label="Catalog Summary">
+      <div class="stat-card">
+        <div class="stat-icon-wrapper icon-total">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value" id="stat-total-products">--</div>
+          <div class="stat-label">Matching Products</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrapper icon-sort">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <polyline points="19 12 12 19 5 12"></polyline>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value" id="stat-active-sort">createdAt (DESC)</div>
+          <div class="stat-label">Active Sorting Order</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrapper icon-page">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 7 4 4 20 4 20 7"></polyline>
+            <line x1="9" y1="20" x2="15" y2="20"></line>
+            <line x1="12" y1="4" x2="12" y2="20"></line>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value" id="stat-page-window">Page Size: 20</div>
+          <div class="stat-label" id="stat-cursor-state">First Page</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrapper icon-filter">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value" id="stat-active-filters-count">0 Active</div>
+          <div class="stat-label">Applied Filters</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filters and Search Toolbar -->
+    <section class="toolbar-card" aria-label="Catalog Filters">
+      <form id="filter-form" class="filter-form" onsubmit="return false;">
+        <!-- Search Input Bar -->
+        <div class="search-field-container">
+          <div class="input-with-icon">
+            <svg class="field-icon search-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              id="search-input"
+              class="form-control text-input"
+              placeholder="Search name or description (e.g. Wireless, Espresso, Cotton)..."
+              autocomplete="off"
+            >
+            <button type="button" id="search-clear-btn" class="btn-clear-input" title="Clear search" aria-label="Clear search">
+              &times;
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Grid -->
+        <div class="filters-grid">
+          <!-- Category Select -->
+          <div class="form-group">
+            <label for="category-select" class="form-label">Category</label>
+            <select id="category-select" class="form-control select-input">
+              <option value="">All Categories</option>
+              <!-- Dynamically populated from /api/categories -->
+            </select>
+          </div>
+
+          <!-- Price Min -->
+          <div class="form-group">
+            <label for="price-min-input" class="form-label">Min Price (₹)</label>
+            <input
+              type="number"
+              id="price-min-input"
+              class="form-control number-input"
+              placeholder="0"
+              min="0"
+              step="any"
+            >
+          </div>
+
+          <!-- Price Max -->
+          <div class="form-group">
+            <label for="price-max-input" class="form-label">Max Price (₹)</label>
+            <input
+              type="number"
+              id="price-max-input"
+              class="form-control number-input"
+              placeholder="Any"
+              min="0"
+              step="any"
+            >
+          </div>
+
+          <!-- Stock Status -->
+          <div class="form-group">
+            <label for="stock-select" class="form-label">Inventory Status</label>
+            <select id="stock-select" class="form-control select-input">
+              <option value="">All Stock</option>
+              <option value="true">In Stock Only</option>
+              <option value="false">Out of Stock Only</option>
+            </select>
+          </div>
+
+          <!-- Page Limit -->
+          <div class="form-group">
+            <label for="limit-select" class="form-label">Page Size</label>
+            <select id="limit-select" class="form-control select-input">
+              <option value="10">10 per page</option>
+              <option value="20" selected>20 per page</option>
+              <option value="50">50 per page</option>
+              <option value="100">100 per page</option>
+            </select>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="form-group filter-actions">
+            <button type="button" id="apply-filters-btn" class="btn btn-primary">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Apply
+            </button>
+            <button type="button" id="reset-filters-btn" class="btn btn-secondary">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+              </svg>
+              Reset
+            </button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Error Alert Banner -->
+    <div id="error-banner" class="alert-banner alert-error hidden" role="alert">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span id="error-message-text" class="error-text">An error occurred</span>
+      <button type="button" id="dismiss-error-btn" class="btn-dismiss">&times;</button>
+    </div>
+
+    <!-- Main Table Container -->
+    <main class="table-card">
+      <!-- Table Header & Pagination Bar -->
+      <div class="table-top-bar">
+        <div class="table-summary-info">
+          <span id="table-results-summary">Loading catalog data...</span>
+        </div>
+        <div class="pagination-controls">
+          <button type="button" id="prev-page-btn" class="btn btn-pagination" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            Previous
+          </button>
+          <span class="pagination-indicator" id="pagination-indicator">Page</span>
+          <button type="button" id="next-page-btn" class="btn btn-pagination" disabled>
+            Next
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Responsive Table Viewport -->
+      <div class="table-responsive">
+        <table class="product-table" id="product-table" aria-label="Product Catalog Table">
+          <thead>
+            <tr>
+              <th scope="col" class="sortable-th" data-column="id">
+                <div class="th-content">
+                  <span>ID</span>
+                  <span class="sort-icon" id="sort-icon-id">⇅</span>
+                </div>
+              </th>
+              <th scope="col" class="sortable-th" data-column="name">
+                <div class="th-content">
+                  <span>Product Name</span>
+                  <span class="sort-icon" id="sort-icon-name">⇅</span>
+                </div>
+              </th>
+              <th scope="col" class="sortable-th" data-column="description">
+                <div class="th-content">
+                  <span>Description</span>
+                  <span class="sort-icon" id="sort-icon-description">⇅</span>
+                </div>
+              </th>
+              <th scope="col" class="sortable-th" data-column="category">
+                <div class="th-content">
+                  <span>Category</span>
+                  <span class="sort-icon" id="sort-icon-category">⇅</span>
+                </div>
+              </th>
+              <th scope="col" class="sortable-th" data-column="price">
+                <div class="th-content">
+                  <span>Price</span>
+                  <span class="sort-icon" id="sort-icon-price">⇅</span>
+                </div>
+              </th>
+              <th scope="col" class="sortable-th" data-column="stock">
+                <div class="th-content">
+                  <span>Stock</span>
+                  <span class="sort-icon" id="sort-icon-stock">⇅</span>
+                </div>
+              </th>
+              <th scope="col" class="sortable-th" data-column="rating">
+                <div class="th-content">
+                  <span>Rating</span>
+                  <span class="sort-icon" id="sort-icon-rating">⇅</span>
+                </div>
+              </th>
+              <th scope="col" class="sortable-th" data-column="createdAt">
+                <div class="th-content">
+                  <span>Created Date</span>
+                  <span class="sort-icon" id="sort-icon-createdAt">⇅</span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="product-tbody">
+            <!-- Dynamic rows inserted by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading-spinner-state" class="state-container loading-state hidden">
+        <div class="spinner-ring"></div>
+        <p class="state-text">Fetching catalog records...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="state-container empty-state hidden">
+        <div class="empty-icon-wrapper">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="8" y1="11" x2="14" y2="11"></line>
+          </svg>
+        </div>
+        <h3 class="empty-title">No products found</h3>
+        <p class="empty-desc">No products matched your active search query or filter criteria.</p>
+        <button type="button" id="empty-reset-btn" class="btn btn-secondary">Clear All Filters</button>
+      </div>
+
+      <!-- Bottom Pagination Bar -->
+      <div class="table-bottom-bar">
+        <div class="url-sync-indicator">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          <span>URL Query String Synchronized</span>
+        </div>
+
+        <div class="pagination-controls">
+          <button type="button" id="bottom-prev-page-btn" class="btn btn-pagination" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            Previous
+          </button>
+          <span class="pagination-indicator" id="bottom-pagination-indicator">Page</span>
+          <button type="button" id="bottom-next-page-btn" class="btn btn-pagination" disabled>
+            Next
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Product Catalog REST API &bull; SQLite Keyset Keyset/Cursor Engine &bull; Pure Vanilla JS &bull; Windows Compatible</p>
+    </footer>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
